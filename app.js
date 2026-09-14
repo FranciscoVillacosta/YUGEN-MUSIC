@@ -1,4 +1,15 @@
 // ====================================================
+// 0. MODO OFFLINE (Service Worker)
+// ====================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('Modo offline activo'))
+      .catch(err => console.warn('Aviso SW:', err));
+  });
+}
+
+// ====================================================
 // 1. CONFIGURACIÓN RAPIDAPI
 // ====================================================
 const RAPIDAPI_KEY = 'bfc61495bdmsh27d4202f3fc9a11p1b93b8jsn28435328d6e5';
@@ -27,12 +38,13 @@ async function convertYouTubeVideo() {
 
   const videoId = extractVideoId(query);
 
-  // Mostrar tarjeta de descarga en estado de carga
-  downloadCard.style.display = 'flex';
-  dlTitle.textContent = "Procesando video...";
-  dlStatus.textContent = "Extrayendo audio desde YouTube...";
-  dlActionBtn.textContent = "Cargando...";
-  dlActionBtn.disabled = true;
+  if (downloadCard) downloadCard.style.display = 'flex';
+  if (dlTitle) dlTitle.textContent = "Procesando video...";
+  if (dlStatus) dlStatus.textContent = "Extrayendo audio desde YouTube...";
+  if (dlActionBtn) {
+    dlActionBtn.textContent = "Cargando...";
+    dlActionBtn.disabled = true;
+  }
 
   try {
     const response = await fetch(`https://${RAPIDAPI_HOST}/dl?id=${encodeURIComponent(videoId)}`, {
@@ -48,53 +60,61 @@ async function convertYouTubeVideo() {
     const data = await response.json();
 
     if (data.status === 'ok' && data.link) {
-      dlTitle.textContent = data.title || "Audio Listo";
-      dlStatus.textContent = `Duración: ${Math.floor(data.duration || 0)}s · MP3 Calidad 192k`;
-      dlActionBtn.textContent = "Descargar MP3 ⭳";
-      dlActionBtn.disabled = false;
-
-      // Abrir enlace para guardar el MP3 en el teléfono/PC
-      dlActionBtn.onclick = () => {
-        window.open(data.link, '_blank');
-      };
+      if (dlTitle) dlTitle.textContent = data.title || "Audio Listo";
+      if (dlStatus) dlStatus.textContent = `Duración: ${Math.floor(data.duration || 0)}s · MP3 Calidad 192k`;
+      if (dlActionBtn) {
+        dlActionBtn.textContent = "Descargar MP3 ⭳";
+        dlActionBtn.disabled = false;
+        dlActionBtn.onclick = () => {
+          window.open(data.link, '_blank');
+        };
+      }
     } else if (data.status === 'processing') {
-      dlTitle.textContent = "Convirtiendo...";
-      dlStatus.textContent = "El servidor está procesando el archivo, pulsa reintentar en unos segundos.";
-      dlActionBtn.textContent = "Reintentar";
-      dlActionBtn.disabled = false;
-      dlActionBtn.onclick = convertYouTubeVideo;
+      if (dlTitle) dlTitle.textContent = "Convirtiendo...";
+      if (dlStatus) dlStatus.textContent = "El servidor está procesando el archivo, pulsa reintentar en unos segundos.";
+      if (dlActionBtn) {
+        dlActionBtn.textContent = "Reintentar";
+        dlActionBtn.disabled = false;
+        dlActionBtn.onclick = convertYouTubeVideo;
+      }
     } else {
       throw new Error(data.msg || "No se pudo obtener el audio.");
     }
 
   } catch (error) {
     console.error(error);
-    dlTitle.textContent = "Error al descargar";
-    dlStatus.textContent = "Verifica el enlace o la cuota de tu plan de RapidAPI.";
-    dlActionBtn.textContent = "Reintentar";
-    dlActionBtn.disabled = false;
-    dlActionBtn.onclick = convertYouTubeVideo;
+    if (dlTitle) dlTitle.textContent = "Error al descargar";
+    if (dlStatus) dlStatus.textContent = "Verifica el enlace o tu conexión a internet.";
+    if (dlActionBtn) {
+      dlActionBtn.textContent = "Reintentar";
+      dlActionBtn.disabled = false;
+      dlActionBtn.onclick = convertYouTubeVideo;
+    }
   }
 }
 
-ytSearchBtn.addEventListener('click', convertYouTubeVideo);
-ytInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') convertYouTubeVideo();
-});
-dlCloseBtn.addEventListener('click', () => {
-  downloadCard.style.display = 'none';
-});
-
+if (ytSearchBtn) ytSearchBtn.addEventListener('click', convertYouTubeVideo);
+if (ytInput) {
+  ytInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') convertYouTubeVideo();
+  });
+}
+if (dlCloseBtn && downloadCard) {
+  dlCloseBtn.addEventListener('click', () => {
+    downloadCard.style.display = 'none';
+  });
+}
 
 // ====================================================
-// 2. BASE DE DATOS LOCAL (IndexedDB)
+// 2. BASE DE DATOS LOCAL OFFLINE (IndexedDB)
 // ====================================================
 const DB_NAME = 'YugenMusicDB';
+const DB_VERSION = 2;
 const STORE_NAME = 'tracks';
 
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -108,13 +128,18 @@ function openDB() {
 
 async function saveTrackToDB(file) {
   const db = await openDB();
+  
+  // Convertir a ArrayBuffer para persistencia física sin conexión
+  const buffer = await file.arrayBuffer();
+  const audioBlob = new Blob([buffer], { type: file.type || 'audio/mpeg' });
+
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     const trackData = {
       title: file.name.replace(/\.[^/.]+$/, ""),
       size: (file.size / (1024 * 1024)).toFixed(1) + " MB",
-      blob: file
+      blob: audioBlob
     };
     const req = store.add(trackData);
     req.onsuccess = () => resolve({ ...trackData, id: req.result });
@@ -144,7 +169,6 @@ async function deleteTrackFromDB(id) {
   });
 }
 
-
 // ====================================================
 // 3. GESTIÓN DE LA LISTA Y REPRODUCTOR
 // ====================================================
@@ -167,7 +191,7 @@ const audio = new Audio();
 let playlist = [];
 let currentIndex = 0;
 
-// Cargar canciones guardadas al abrir la app
+// Cargar pistas guardadas
 window.addEventListener('DOMContentLoaded', async () => {
   try {
     const savedTracks = await loadAllTracksFromDB();
@@ -183,50 +207,52 @@ window.addEventListener('DOMContentLoaded', async () => {
       loadTrack(0);
     }
   } catch (err) {
-    console.error("Error al leer IndexedDB:", err);
+    console.error("Error al leer base local:", err);
   }
 });
 
-// Cargar nuevos archivos locales
-btnUpload.addEventListener('click', () => audioPicker.click());
+// Subir archivos locales
+if (btnUpload && audioPicker) {
+  btnUpload.addEventListener('click', () => audioPicker.click());
 
-audioPicker.addEventListener('change', async (e) => {
-  const files = Array.from(e.target.files);
-  if (files.length === 0) return;
+  audioPicker.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
 
-  for (const file of files) {
-    const saved = await saveTrackToDB(file);
-    playlist.push({
-      id: saved.id,
-      title: saved.title,
-      size: saved.size,
-      blob: saved.blob,
-      url: URL.createObjectURL(saved.blob)
-    });
-  }
+    for (const file of files) {
+      const saved = await saveTrackToDB(file);
+      playlist.push({
+        id: saved.id,
+        title: saved.title,
+        size: saved.size,
+        blob: saved.blob,
+        url: URL.createObjectURL(saved.blob)
+      });
+    }
 
-  updatePlaylistUI();
+    updatePlaylistUI();
 
-  if (!audio.src || audio.src === '') {
-    loadTrack(0);
-  }
+    if (!audio.src || audio.src === '') {
+      loadTrack(0);
+    }
 
-  audioPicker.value = '';
-});
+    audioPicker.value = '';
+  });
+}
 
 function updatePlaylistUI() {
   if (playlist.length === 0) {
-    emptyState.style.display = 'block';
-    playlistView.innerHTML = '';
-    trackCount.textContent = '0 pistas';
-    nowPlayingTitle.textContent = 'Selecciona una pista';
-    nowPlayingMeta.textContent = 'YŪGEN Music';
+    if (emptyState) emptyState.style.display = 'block';
+    if (playlistView) playlistView.innerHTML = '';
+    if (trackCount) trackCount.textContent = '0 pistas';
+    if (nowPlayingTitle) nowPlayingTitle.textContent = 'Selecciona una pista';
+    if (nowPlayingMeta) nowPlayingMeta.textContent = 'YŪGEN Music';
     return;
   }
 
-  emptyState.style.display = 'none';
-  playlistView.innerHTML = '';
-  trackCount.textContent = `${playlist.length} pista${playlist.length > 1 ? 's' : ''}`;
+  if (emptyState) emptyState.style.display = 'none';
+  if (playlistView) playlistView.innerHTML = '';
+  if (trackCount) trackCount.textContent = `${playlist.length} pista${playlist.length > 1 ? 's' : ''}`;
 
   playlist.forEach((song, idx) => {
     const li = document.createElement('li');
@@ -253,7 +279,7 @@ function updatePlaylistUI() {
       await removeTrack(idx);
     });
 
-    playlistView.appendChild(li);
+    if (playlistView) playlistView.appendChild(li);
   });
 }
 
@@ -294,13 +320,13 @@ function loadTrack(index) {
   const track = playlist[index];
 
   audio.src = track.url;
-  nowPlayingTitle.textContent = track.title;
-  nowPlayingMeta.textContent = `Pista ${index + 1} de ${playlist.length} · ${track.size}`;
+  if (nowPlayingTitle) nowPlayingTitle.textContent = track.title;
+  if (nowPlayingMeta) nowPlayingMeta.textContent = `Pista ${index + 1} de ${playlist.length} · ${track.size}`;
 
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: track.title,
-      artist: 'YŪGEN Local',
+      artist: 'YŪGEN Local Player',
       album: 'Almacenamiento Local'
     });
   }
@@ -310,14 +336,17 @@ function loadTrack(index) {
 
 function playAudio() {
   if (!audio.src) return;
-  audio.play();
-  playPauseBtn.textContent = '⏸';
-  highlightActiveTrack();
+  audio.play().then(() => {
+    if (playPauseBtn) playPauseBtn.textContent = '⏸';
+    highlightActiveTrack();
+  }).catch(err => {
+    console.warn("Reproducción en espera de interacción táctil:", err);
+  });
 }
 
 function pauseAudio() {
   audio.pause();
-  playPauseBtn.textContent = '▶';
+  if (playPauseBtn) playPauseBtn.textContent = '▶';
   highlightActiveTrack();
 }
 
@@ -332,28 +361,34 @@ function highlightActiveTrack() {
   });
 }
 
-// Botones de Reproductor
-playPauseBtn.addEventListener('click', () => {
-  if (playlist.length === 0) {
-    audioPicker.click();
-    return;
-  }
-  audio.paused ? playAudio() : pauseAudio();
-});
+// Eventos de reproducción
+if (playPauseBtn) {
+  playPauseBtn.addEventListener('click', () => {
+    if (playlist.length === 0) {
+      if (audioPicker) audioPicker.click();
+      return;
+    }
+    audio.paused ? playAudio() : pauseAudio();
+  });
+}
 
-nextBtn.addEventListener('click', () => {
-  if (playlist.length <= 1) return;
-  currentIndex = (currentIndex + 1) % playlist.length;
-  loadTrack(currentIndex);
-  playAudio();
-});
+if (nextBtn) {
+  nextBtn.addEventListener('click', () => {
+    if (playlist.length <= 1) return;
+    currentIndex = (currentIndex + 1) % playlist.length;
+    loadTrack(currentIndex);
+    playAudio();
+  });
+}
 
-prevBtn.addEventListener('click', () => {
-  if (playlist.length <= 1) return;
-  currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-  loadTrack(currentIndex);
-  playAudio();
-});
+if (prevBtn) {
+  prevBtn.addEventListener('click', () => {
+    if (playlist.length <= 1) return;
+    currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+    loadTrack(currentIndex);
+    playAudio();
+  });
+}
 
 audio.addEventListener('ended', () => {
   currentIndex = (currentIndex + 1) % playlist.length;
@@ -363,17 +398,19 @@ audio.addEventListener('ended', () => {
 
 audio.addEventListener('timeupdate', () => {
   if (!isNaN(audio.duration)) {
-    progressBar.value = (audio.currentTime / audio.duration) * 100;
-    currentTimeEl.textContent = formatTime(audio.currentTime);
-    totalDurationEl.textContent = formatTime(audio.duration);
+    if (progressBar) progressBar.value = (audio.currentTime / audio.duration) * 100;
+    if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime);
+    if (totalDurationEl) totalDurationEl.textContent = formatTime(audio.duration);
   }
 });
 
-progressBar.addEventListener('input', () => {
-  if (!isNaN(audio.duration)) {
-    audio.currentTime = (progressBar.value / 100) * audio.duration;
-  }
-});
+if (progressBar) {
+  progressBar.addEventListener('input', () => {
+    if (!isNaN(audio.duration)) {
+      audio.currentTime = (progressBar.value / 100) * audio.duration;
+    }
+  });
+}
 
 function formatTime(seconds) {
   const min = Math.floor(seconds / 60);
