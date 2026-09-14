@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>YŪGEN Player & Downloader</title>
+</head>
+<body>
+
+  <!-- Barra Superior: Logo, Buscador YouTube y Cargar Archivos -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-badge">♫</div>
+      <span class="brand-name">YŪGEN <span class="brand-sub">PRO</span></span>
+    </div>
+    
+    <!-- Buscador / Descargador RapidAPI -->
+    <div class="search-box">
+      <input type="text" id="ytInput" placeholder="Pega link o ID de YouTube..." />
+      <button type="button" id="ytSearchBtn">Descargar</button>
+    </div>
+
+    <!-- Carga de música local -->
+    <div class="header-actions">
+      <input type="file" id="audioPicker" accept="audio/*" multiple style="display: none;" />
+      <button type="button" id="btnUpload" class="btn-primary">
+        <span>+</span> Subir Local
+      </button>
+    </div>
+  </header>
+
+  <main class="content-area">
+    <!-- Panel / Notificación de descarga (Oculto hasta que buscas) -->
+    <div id="downloadCard" class="download-card" style="display: none;">
+      <div class="dl-info">
+        <span class="dl-badge">YOUTUBE MP3</span>
+        <p id="dlTitle" class="dl-title">Procesando audio...</p>
+        <p id="dlStatus" class="dl-status">Consultando servidores...</p>
+      </div>
+      <div class="dl-actions">
+        <button type="button" id="dlActionBtn" class="btn-dl-main" disabled>Cargando...</button>
+        <button type="button" id="dlCloseBtn" class="btn-dl-close">✕</button>
+      </div>
+    </div>
+
+    <!-- Lista de tu biblioteca -->
+    <div class="playlist-header">
+      <h2>Tu Biblioteca Local</h2>
+      <span id="trackCount" class="track-count">0 pistas</span>
+    </div>
+
+    <!-- Estado vacío -->
+    <div id="emptyState" class="empty-state">
+      <div class="empty-icon">📁</div>
+      <p class="empty-title">Tu biblioteca está vacía</p>
+      <p class="empty-sub">Carga tus archivos locales con el botón <strong>"+ Subir Local"</strong> o descarga canciones pegando enlaces de YouTube arriba.</p>
+    </div>
+
+    <ul id="playlistView" class="playlist-view"></ul>
+  </main>
+
+  <!-- Barra Inferior del Reproductor -->
+  <footer class="bottom-player">
+    <div class="current-track-info">
+      <p id="nowPlayingTitle" class="now-title">Selecciona una pista</p>
+      <p id="nowPlayingMeta" class="now-meta">YŪGEN Music</p>
+    </div>
+
+    <div class="player-center">
+      <div class="controls">
+        <button type="button" class="btn-ctrl" id="prevBtn" title="Anterior">⏮</button>
+        <button type="button" class="btn-ctrl play" id="playPauseBtn" title="Reproducir">▶</button>
+        <button type="button" class="btn-ctrl" id="nextBtn" title="Siguiente">⏭</button>
+      </div>
+
+      <div class="progress-container">
+        <span id="currentTime">0:00</span>
+        <input type="range" id="progressBar" min="0" max="100" value="0" />
+        <span id="totalDuration">0:00</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

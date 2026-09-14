@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>YŪGEN Player</title>
+</head>
+<body>
+
+  <!-- Barra superior -->
+  <header class="top-bar">
+    <div class="brand">
+      <h3 class="lg"><img src="img/logo.png" alt="Logo"></h3>
+      <span class="brand-name">YUGEN <span class="brand-sub">PLAYER</span></span>
+    </div>
+    
+    <div class="container">
+      <!-- Input oculto para abrir explorador de archivos -->
+      <input type="file" id="filePicker" accept="audio/*" multiple style="display: none;" />
+      <button type="button" id="loadFilesBtn">Abrir Archivos</button>
+    </div>
+  </header>
+
+  <!-- Tarjeta Central de Reproducción -->
+  <main class="player-wrapper">
+    <div class="card">
+      <div class="card-details">
+        <p class="title" id="trackTitle">SIN CANCIÓN</p>
+        <p class="text-body" id="trackInfo">Carga archivos MP3 o WAV para comenzar</p>
+      </div>
+      <button class="card-button" id="mainPlayBtn">Escuchar</button>
+    </div>
+  </main>
+
+  <!-- Barra de Control Inferior -->
+  <footer class="bottom-player">
+    <div class="controls">
+      <button type="button" class="btn-ctrl" id="prevTrackBtn">⏮</button>
+      <button type="button" class="btn-ctrl play" id="bottomPlayBtn">▶</button>
+      <button type="button" class="btn-ctrl" id="nextTrackBtn">⏭</button>
+    </div>
+
+    <!-- Barra de progreso -->
+    <div class="progress-container">
+      <span id="currentTime">0:00</span>
+      <input type="range" id="progressBar" min="0" max="100" value="0" />
+      <span id="totalDuration">0:00</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
