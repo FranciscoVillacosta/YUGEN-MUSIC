@@ -4,81 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <title>YŪGEN · Reproductor</title>
+  <title>YŪGEN Player & Downloader</title>
 </head>
 <body>
 
-  <!-- Barra Superior -->
+  <!-- Barra Superior: Logo, Buscador YouTube y Cargar Archivos -->
   <header class="top-bar">
     <div class="brand">
       <div class="brand-badge">♫</div>
-      <span class="brand-name">YŪGEN <span class="brand-sub">PLAYER</span></span>
+      <span class="brand-name">YŪGEN <span class="brand-sub">PRO</span></span>
     </div>
     
-    <!-- Buscador en tiempo real de tus archivos locales -->
+    <!-- Buscador / Descargador RapidAPI -->
     <div class="search-box">
-      <input type="text" id="localSearchInput" placeholder="Buscar en mi música..." />
+      <input type="text" id="ytInput" placeholder="Pega link o ID de YouTube..." />
+      <button type="button" id="ytSearchBtn">Descargar</button>
     </div>
 
-    <!-- Acciones: Cargar local e ir a la página de descarga -->
+    <!-- Carga de música local -->
     <div class="header-actions">
       <input type="file" id="audioPicker" accept="audio/*" multiple style="display: none;" />
-      <button type="button" id="btnUpload" class="btn-secondary" title="Agregar archivos">
-        <span>+</span> Subir
+      <button type="button" id="btnUpload" class="btn-primary">
+        <span>+</span> Subir Local
       </button>
-      <a href="download.html" class="btn-primary nav-link">
-        <span>⭳</span> Descargar
-      </a>
     </div>
   </header>
 
   <main class="content-area">
-    <!-- Pestañas de Filtro por Género -->
-    <div class="genre-tabs" id="genreTabs">
-      <button type="button" class="genre-pill active" data-genre="Todos">Todos</button>
-      <button type="button" class="genre-pill" data-genre="Lo-Fi">Lo-Fi</button>
-      <button type="button" class="genre-pill" data-genre="Trap / Rap">Trap / Rap</button>
-      <button type="button" class="genre-pill" data-genre="Rock">Rock</button>
-      <button type="button" class="genre-pill" data-genre="Pop">Pop</button>
-      <button type="button" class="genre-pill" data-genre="Electro">Electro</button>
-      <button type="button" class="genre-pill" data-genre="Otros">Otros</button>
+    <!-- Panel / Notificación de descarga (Oculto hasta que buscas) -->
+    <div id="downloadCard" class="download-card" style="display: none;">
+      <div class="dl-info">
+        <span class="dl-badge">YOUTUBE MP3</span>
+        <p id="dlTitle" class="dl-title">Procesando audio...</p>
+        <p id="dlStatus" class="dl-status">Consultando servidores...</p>
+      </div>
+      <div class="dl-actions">
+        <button type="button" id="dlActionBtn" class="btn-dl-main" disabled>Cargando...</button>
+        <button type="button" id="dlCloseBtn" class="btn-dl-close">✕</button>
+      </div>
     </div>
 
-    <!-- Encabezado de la lista -->
+    <!-- Lista de tu biblioteca -->
     <div class="playlist-header">
-      <h2 id="currentSectionTitle">Todos los temas</h2>
+      <h2>Tu Biblioteca Local</h2>
       <span id="trackCount" class="track-count">0 pistas</span>
     </div>
 
     <!-- Estado vacío -->
     <div id="emptyState" class="empty-state">
       <div class="empty-icon">📁</div>
-      <p class="empty-title">No hay música aquí</p>
-      <p class="empty-sub">Carga canciones desde tu celular o ve a <a href="download.html" style="color: #c084fc;">Descargar</a> para bajar nuevos temas.</p>
+      <p class="empty-title">Tu biblioteca está vacía</p>
+      <p class="empty-sub">Carga tus archivos locales con el botón <strong>"+ Subir Local"</strong> o descarga canciones pegando enlaces de YouTube arriba.</p>
     </div>
 
     <ul id="playlistView" class="playlist-view"></ul>
   </main>
-
-  <!-- Modal rápido para asignar género a una pista -->
-  <div id="genreModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-      <h3>Asignar Género</h3>
-      <p id="modalTrackName" class="modal-track-name">Nombre de pista</p>
-      <select id="genreSelect">
-        <option value="Lo-Fi">Lo-Fi</option>
-        <option value="Trap / Rap">Trap / Rap</option>
-        <option value="Rock">Rock</option>
-        <option value="Pop">Pop</option>
-        <option value="Electro">Electro</option>
-        <option value="Otros">Otros</option>
-      </select>
-      <div class="modal-actions">
-        <button type="button" id="modalCancelBtn" class="btn-cancel">Cancelar</button>
-        <button type="button" id="modalSaveBtn" class="btn-save">Guardar</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Barra Inferior del Reproductor -->
   <footer class="bottom-player">
