@@ -283,8 +283,8 @@ body {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 16px;
-  border-bottom: 1px solid rgba(168, 85, 247, 0.12);
-  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  padding-bottom: 10px;
 }
 
 .shelf-header h2 {
@@ -302,55 +302,60 @@ body {
 .cards-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
 }
 
-/* Barrita horizontal individual */
+/* Barrita con fondo profundo y sombreado */
 .music-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(18, 14, 28, 0.7);
-  border: 1px solid rgba(168, 85, 247, 0.12);
-  border-radius: 10px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(28, 18, 48, 0.75) 0%, rgba(13, 10, 22, 0.85) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
 }
 
 .music-bar:hover, .music-bar:active {
-  background: rgba(35, 25, 56, 0.85);
-  border-color: rgba(168, 85, 247, 0.35);
+  background: linear-gradient(135deg, rgba(46, 26, 82, 0.85) 0%, rgba(20, 14, 36, 0.95) 100%);
+  border-color: rgba(168, 85, 247, 0.45);
   transform: translateX(4px);
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.25);
 }
 
 .music-bar.active {
-  background: linear-gradient(90deg, rgba(147, 51, 234, 0.3) 0%, rgba(20, 16, 32, 0.85) 100%);
+  background: linear-gradient(90deg, rgba(147, 51, 234, 0.35) 0%, rgba(26, 17, 46, 0.95) 100%);
   border-color: #a855f7;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
 }
 
 /* Parte izquierda: Portada mini + Títulos */
 .music-bar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   overflow: hidden;
   flex: 1;
 }
 
 .bar-mini-cover {
-  width: 42px;
-  height: 42px;
-  min-width: 42px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #2d184c 0%, #0d0a14 100%);
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #7c3aed 0%, #3b0764 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  color: #c084fc;
+  font-size: 1.2rem;
+  color: #f3e8ff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .bar-texts {
@@ -360,8 +365,8 @@ body {
 }
 
 .bar-title {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
@@ -370,36 +375,44 @@ body {
 
 .bar-desc {
   font-size: 0.75rem;
-  color: #9ca3af;
-  margin-top: 2px;
+  color: #c084fc;
+  margin-top: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Parte derecha: Botón badge Play/Pausa */
+/* Parte derecha: Botón Play en el extremo derecho */
 .music-bar-right {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-left: 10px;
+  margin-left: auto;
+  padding-left: 12px;
 }
 
 .bar-badge {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
+  background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 13px;
+  box-shadow: 0 2px 10px rgba(147, 51, 234, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.music-bar:hover .bar-badge {
+  transform: scale(1.08);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.6);
 }
 
 .music-bar.active .bar-badge {
-  background: #a855f7;
+  background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);
   color: #ffffff;
+  box-shadow: 0 0 16px rgba(192, 132, 252, 0.7);
 }
 
 .empty-shelf {
@@ -750,35 +763,37 @@ body {
     max-width: none;
   }
 
-  /* Barrita compacta en teléfonos */
+  /* Barrita compacta en teléfonos con fondo y botón Play a la derecha */
   .cards-grid {
-    gap: 6px;
+    gap: 8px;
   }
 
   .music-bar {
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(28, 18, 48, 0.8) 0%, rgba(13, 10, 22, 0.9) 100%);
   }
 
   .bar-mini-cover {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    font-size: 0.95rem;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    font-size: 1rem;
+    border-radius: 6px;
   }
 
   .bar-title {
-    font-size: 0.84rem;
+    font-size: 0.86rem;
   }
 
   .bar-desc {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
 
   .bar-badge {
-    width: 26px;
-    height: 26px;
-    font-size: 10px;
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
   }
 
   /* Formularios y acciones en pantalla pequeña */
