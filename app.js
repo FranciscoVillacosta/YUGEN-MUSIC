@@ -193,6 +193,7 @@ let currentIndex = 0;
 
 // Cargar pistas guardadas
 window.addEventListener('DOMContentLoaded', async () => {
+  setupMediaSession();
   try {
     const savedTracks = await loadAllTracksFromDB();
     if (savedTracks && savedTracks.length > 0) {
@@ -303,6 +304,9 @@ async function removeTrack(index) {
     audio.pause();
     audio.src = '';
     currentIndex = 0;
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'none';
+    }
   } else if (index === currentIndex) {
     currentIndex = currentIndex % playlist.length;
     loadTrack(currentIndex);
@@ -323,11 +327,17 @@ function loadTrack(index) {
   if (nowPlayingTitle) nowPlayingTitle.textContent = track.title;
   if (nowPlayingMeta) nowPlayingMeta.textContent = `Pista ${index + 1} de ${playlist.length} · ${track.size}`;
 
+  // Actualización de metadatos y carátula para la pantalla de bloqueo
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: track.title,
       artist: 'YŪGEN Local Player',
-      album: 'Almacenamiento Local'
+      album: 'Mi Música Offline',
+      artwork: [
+        { src: 'img/logo.png', sizes: '96x96', type: 'image/png' },
+        { src: 'img/logo.png', sizes: '192x192', type: 'image/png' },
+        { src: 'img/logo.png', sizes: '512x512', type: 'image/png' }
+      ]
     });
   }
 
@@ -338,6 +348,9 @@ function playAudio() {
   if (!audio.src) return;
   audio.play().then(() => {
     if (playPauseBtn) playPauseBtn.textContent = '⏸';
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'playing';
+    }
     highlightActiveTrack();
   }).catch(err => {
     console.warn("Reproducción en espera de interacción táctil:", err);
@@ -347,7 +360,24 @@ function playAudio() {
 function pauseAudio() {
   audio.pause();
   if (playPauseBtn) playPauseBtn.textContent = '▶';
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.playbackState = 'paused';
+  }
   highlightActiveTrack();
+}
+
+function playNextTrack() {
+  if (playlist.length <= 1) return;
+  currentIndex = (currentIndex + 1) % playlist.length;
+  loadTrack(currentIndex);
+  playAudio();
+}
+
+function playPrevTrack() {
+  if (playlist.length <= 1) return;
+  currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+  loadTrack(currentIndex);
+  playAudio();
 }
 
 function highlightActiveTrack() {
@@ -361,7 +391,60 @@ function highlightActiveTrack() {
   });
 }
 
-// Eventos de reproducción
+// ====================================================
+// 4. CONTROL DESDE PANTALLA DE BLOQUEO (MediaSession API)
+// ====================================================
+function setupMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+
+  // Botón Play en pantalla de bloqueo
+  navigator.mediaSession.setActionHandler('play', () => {
+    playAudio();
+  });
+
+  // Botón Pausa en pantalla de bloqueo
+  navigator.mediaSession.setActionHandler('pause', () => {
+    pauseAudio();
+  });
+
+  // Canción Siguiente (pantalla de bloqueo / audífonos)
+  navigator.mediaSession.setActionHandler('nexttrack', () => {
+    playNextTrack();
+  });
+
+  // Canción Anterior (pantalla de bloqueo / audífonos)
+  navigator.mediaSession.setActionHandler('previoustrack', () => {
+    playPrevTrack();
+  });
+
+  // Desplazamiento en la barra de tiempo desde el widget del sistema
+  try {
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (details.seekTime && !isNaN(audio.duration)) {
+        audio.currentTime = details.seekTime;
+        updateMediaSessionPositionState();
+      }
+    });
+  } catch (e) {
+    console.warn('Acción seekto no soportada por este navegador');
+  }
+}
+
+function updateMediaSessionPositionState() {
+  if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+    if (!isNaN(audio.duration) && audio.duration > 0) {
+      navigator.mediaSession.setPositionState({
+        duration: audio.duration,
+        playbackRate: audio.playbackRate,
+        position: audio.currentTime
+      });
+    }
+  }
+}
+
+// ====================================================
+// 5. EVENTOS DE REPRODUCCIÓN EN PÁGINA
+// ====================================================
 if (playPauseBtn) {
   playPauseBtn.addEventListener('click', () => {
     if (playlist.length === 0) {
@@ -372,35 +455,21 @@ if (playPauseBtn) {
   });
 }
 
-if (nextBtn) {
-  nextBtn.addEventListener('click', () => {
-    if (playlist.length <= 1) return;
-    currentIndex = (currentIndex + 1) % playlist.length;
-    loadTrack(currentIndex);
-    playAudio();
-  });
-}
+if (nextBtn) nextBtn.addEventListener('click', playNextTrack);
+if (prevBtn) prevBtn.addEventListener('click', playPrevTrack);
 
-if (prevBtn) {
-  prevBtn.addEventListener('click', () => {
-    if (playlist.length <= 1) return;
-    currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-    loadTrack(currentIndex);
-    playAudio();
-  });
-}
-
+// Siguiente pista al terminar
 audio.addEventListener('ended', () => {
-  currentIndex = (currentIndex + 1) % playlist.length;
-  loadTrack(currentIndex);
-  playAudio();
+  playNextTrack();
 });
 
+// Sincronizar barra de tiempo del reproductor y de la pantalla bloqueada
 audio.addEventListener('timeupdate', () => {
   if (!isNaN(audio.duration)) {
     if (progressBar) progressBar.value = (audio.currentTime / audio.duration) * 100;
     if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime);
     if (totalDurationEl) totalDurationEl.textContent = formatTime(audio.duration);
+    updateMediaSessionPositionState();
   }
 });
 
@@ -408,6 +477,7 @@ if (progressBar) {
   progressBar.addEventListener('input', () => {
     if (!isNaN(audio.duration)) {
       audio.currentTime = (progressBar.value / 100) * audio.duration;
+      updateMediaSessionPositionState();
     }
   });
 }
