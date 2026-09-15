@@ -4,51 +4,308 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <title>YŪGEN Player</title>
+  <title>YŪGEN · Descargar</title>
 </head>
+<style>
+  /* AJUSTES PARA LA PÁGINA DE DESCARGA */
+.dl-container {
+  max-width: 760px;
+  margin: 20px auto 0 auto;
+}
+
+.search-box-large {
+  display: flex;
+  gap: 10px;
+  margin: 25px 0;
+}
+
+.search-box-large input {
+  flex: 1;
+  height: 48px;
+  padding: 0 18px;
+  background: #181424;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-box-large input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.35);
+}
+
+.search-box-large button {
+  padding: 0 24px;
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(147, 51, 234, 0.4);
+  transition: filter 0.2s;
+}
+
+.search-box-large button:hover {
+  filter: brightness(1.15);
+}
+
+/* Tarjeta de resultado */
+.download-card {
+  background: linear-gradient(145deg, #191328 0%, #0f0c18 100%);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dl-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #c084fc;
+  background: rgba(192, 132, 252, 0.12);
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.dl-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 6px 0 2px 0;
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dl-status {
+  font-size: 0.82rem;
+  color: #a78bfa;
+}
+
+.dl-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-dl-main {
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  border: none;
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+  transition: all 0.2s;
+}
+
+.btn-dl-main:disabled {
+  background: #231b34;
+  color: #6b7280;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-dl-secondary {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #e9d5ff;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-dl-secondary:hover {
+  background: #9333ea;
+  color: #ffffff;
+}
+
+.btn-dl-close {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.btn-dl-close:hover {
+  color: #ffffff;
+}
+
+/* Bloques de ayuda */
+.dl-instructions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.info-box {
+  display: flex;
+  gap: 12px;
+  background: rgba(20, 16, 30, 0.5);
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.info-icon {
+  font-size: 1.4rem;
+}
+
+.info-box h4 {
+  font-size: 0.92rem;
+  color: #f3e8ff;
+  margin-bottom: 4px;
+}
+
+.info-box p {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .search-box-large {
+    flex-direction: column;
+  }
+  .search-box-large button {
+    height: 44px;
+  }
+  .download-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dl-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .dl-instructions {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
 <body>
 
-  <!-- Barra superior -->
-  <header class="top-bar">
-    <div class="brand">
-      <h3 class="lg"><img src="img/logo.png" alt="Logo"></h3>
-      <span class="brand-name">YUGEN <span class="brand-sub">PLAYER</span></span>
-    </div>
-    
-    <div class="container">
-      <!-- Input oculto para abrir explorador de archivos -->
-      <input type="file" id="filePicker" accept="audio/*" multiple style="display: none;" />
-      <button type="button" id="loadFilesBtn">Abrir Archivos</button>
-    </div>
-  </header>
-
-  <!-- Tarjeta Central de Reproducción -->
-  <main class="player-wrapper">
-    <div class="card">
-      <div class="card-details">
-        <p class="title" id="trackTitle">SIN CANCIÓN</p>
-        <p class="text-body" id="trackInfo">Carga archivos MP3 o WAV para comenzar</p>
+  <div class="app-layout">
+    <!-- BARRA LATERAL IZQUIERDA -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-badge">♫</div>
+        <span class="brand-name">YŪGEN</span>
       </div>
-      <button class="card-button" id="mainPlayBtn">Escuchar</button>
-    </div>
-  </main>
 
-  <!-- Barra de Control Inferior -->
-  <footer class="bottom-player">
-    <div class="controls">
-      <button type="button" class="btn-ctrl" id="prevTrackBtn">⏮</button>
-      <button type="button" class="btn-ctrl play" id="bottomPlayBtn">▶</button>
-      <button type="button" class="btn-ctrl" id="nextTrackBtn">⏭</button>
-    </div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>Inicio</span>
+        </a>
+        <a href="download.html" class="nav-item active">
+          <span class="nav-icon">⭳</span>
+          <span>Descargar</span>
+        </a>
+      </nav>
 
-    <!-- Barra de progreso -->
-    <div class="progress-container">
-      <span id="currentTime">0:00</span>
-      <input type="range" id="progressBar" min="0" max="100" value="0" />
-      <span id="totalDuration">0:00</span>
-    </div>
-  </footer>
+      <div class="sidebar-section">
+        <p class="sidebar-subtitle">ACCESOS</p>
+        <a href="index.html" class="btn-sidebar-add" style="text-decoration: none;">
+          <span>←</span> Ver Reproductor
+        </a>
+      </div>
+    </aside>
 
-  <script src="app.js"></script>
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+      <section class="shelf-section dl-container">
+        
+        <!-- Header de la sección -->
+        <div class="shelf-header">
+          <div>
+            <h2>Descargar Audio</h2>
+            <p style="color: #9ca3af; font-size: 0.88rem; margin-top: 4px;">
+              Convierte videos de YouTube a MP3 y agrégalos a tu biblioteca.
+            </p>
+          </div>
+        </div>
+
+        <!-- Barra de búsqueda / conversión -->
+        <div class="search-box-large">
+          <input 
+            type="text" 
+            id="ytInput" 
+            placeholder="Pega el link o ID (ej: https://youtube.com/watch?v=...)" 
+          />
+          <button type="button" id="ytSearchBtn">Convertir</button>
+        </div>
+
+        <!-- Tarjeta de estado y descarga -->
+        <div id="downloadCard" class="download-card" style="display: none;">
+          <div class="dl-info">
+            <span class="dl-badge" id="dlBadge">ESTADO</span>
+            <p id="dlTitle" class="dl-title">Procesando...</p>
+            <p id="dlStatus" class="dl-status">Consultando servidor...</p>
+          </div>
+          
+          <div class="dl-actions">
+            <!-- Botón para descargar archivo al celular -->
+            <button type="button" id="dlActionBtn" class="btn-dl-main" disabled>Cargando...</button>
+            
+            <!-- Botón para importarlo directo a IndexedDB -->
+            <button type="button" id="dlAddToLibBtn" class="btn-dl-secondary" style="display: none;">
+              + Guardar en App
+            </button>
+            
+            <button type="button" id="dlCloseBtn" class="btn-dl-close" title="Cerrar">✕</button>
+          </div>
+        </div>
+
+        <!-- Historial rápido / Notas informativas -->
+        <div class="dl-instructions">
+          <div class="info-box">
+            <span class="info-icon">⚡</span>
+            <div>
+              <h4>Descarga Directa</h4>
+              <p>El botón "Descargar MP3" guarda el archivo en la carpeta Downloads de tu teléfono.</p>
+            </div>
+          </div>
+          <div class="info-box">
+            <span class="info-icon">💾</span>
+            <div>
+              <h4>Guardar en App</h4>
+              <p>Puedes almacenar el audio en tu biblioteca local para reproducirlo offline de inmediato.</p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script src="download.js"></script>
 </body>
 </html>

@@ -4,67 +4,86 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <title>YŪGEN Player & Downloader</title>
+  <title>YŪGEN · Inicio</title>
 </head>
 <body>
 
-  <!-- Barra Superior: Logo, Buscador YouTube y Cargar Archivos -->
-  <header class="top-bar">
-    <div class="brand">
-      <div class="brand-badge">♫</div>
-      <span class="brand-name">YŪGEN <span class="brand-sub">PRO</span></span>
-    </div>
-    
-    <!-- Buscador / Descargador RapidAPI -->
-    <div class="search-box">
-      <input type="text" id="ytInput" placeholder="Pega link o ID de YouTube..." />
-      <button type="button" id="ytSearchBtn">Descargar</button>
-    </div>
-
-    <!-- Carga de música local -->
-    <div class="header-actions">
-      <input type="file" id="audioPicker" accept="audio/*" multiple style="display: none;" />
-      <button type="button" id="btnUpload" class="btn-primary">
-        <span>+</span> Subir Local
-      </button>
-    </div>
-  </header>
-
-  <main class="content-area">
-    <!-- Panel / Notificación de descarga (Oculto hasta que buscas) -->
-    <div id="downloadCard" class="download-card" style="display: none;">
-      <div class="dl-info">
-        <span class="dl-badge">YOUTUBE MP3</span>
-        <p id="dlTitle" class="dl-title">Procesando audio...</p>
-        <p id="dlStatus" class="dl-status">Consultando servidores...</p>
+  <div class="app-layout">
+    <!-- BARRA LATERAL IZQUIERDA -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-badge">♫</div>
+        <span class="brand-name">YŪGEN</span>
       </div>
-      <div class="dl-actions">
-        <button type="button" id="dlActionBtn" class="btn-dl-main" disabled>Cargando...</button>
-        <button type="button" id="dlCloseBtn" class="btn-dl-close">✕</button>
+
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item active">
+          <span class="nav-icon">🏠</span>
+          <span>Inicio</span>
+        </a>
+        <a href="carga.html" class="nav-item">
+          <span class="nav-icon">⭳</span>
+          <span>Descargar</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-section">
+        <p class="sidebar-subtitle">TU BIBLIOTECA</p>
+        <input type="file" id="audioPicker" accept="audio/*" multiple style="display: none;" />
+        <button type="button" id="btnUpload" class="btn-sidebar-add">
+          <span>+</span> Subir Archivos
+        </button>
       </div>
-    </div>
 
-    <!-- Lista de tu biblioteca -->
-    <div class="playlist-header">
-      <h2>Tu Biblioteca Local</h2>
-      <span id="trackCount" class="track-count">0 pistas</span>
-    </div>
+      <div class="sidebar-genres">
+        <p class="sidebar-subtitle">GÉNEROS</p>
+        <button type="button" class="genre-link active" data-genre="Todos">Todos</button>
+        <button type="button" class="genre-link" data-genre="Lo-Fi">Lo-Fi</button>
+        <button type="button" class="genre-link" data-genre="Trap / Rap">Trap / Rap</button>
+        <button type="button" class="genre-link" data-genre="Rock">Rock</button>
+        <button type="button" class="genre-link" data-genre="Pop">Pop</button>
+        <button type="button" class="genre-link" data-genre="Otros">Otros</button>
+      </div>
+    </aside>
 
-    <!-- Estado vacío -->
-    <div id="emptyState" class="empty-state">
-      <div class="empty-icon">📁</div>
-      <p class="empty-title">Tu biblioteca está vacía</p>
-      <p class="empty-sub">Carga tus archivos locales con el botón <strong>"+ Subir Local"</strong> o descarga canciones pegando enlaces de YouTube arriba.</p>
-    </div>
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+      <!-- Barra superior con buscador -->
+      <header class="top-nav">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="localSearchInput" placeholder="¿Qué quieres escuchar hoy?" />
+        </div>
+      </header>
 
-    <ul id="playlistView" class="playlist-view"></ul>
-  </main>
+      <!-- Secciones estilo Spotify / Grid de tarjetas -->
+      <section class="shelf-section">
+        <div class="shelf-header">
+          <h2 id="sectionTitle">Tus Canciones</h2>
+          <span id="trackCount" class="shelf-count">0 canciones</span>
+        </div>
 
-  <!-- Barra Inferior del Reproductor -->
+        <!-- Estado vacío -->
+        <div id="emptyState" class="empty-shelf" style="display: none;">
+          <div class="empty-icon">📁</div>
+          <h3>Tu biblioteca está vacía</h3>
+          <p>Sube canciones desde tu dispositivo o ve a la sección de descargas.</p>
+        </div>
+
+        <!-- Cuadrícula de tarjetas con portada -->
+        <div id="songsGrid" class="cards-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- REPRODUCTOR FIJO INFERIOR -->
   <footer class="bottom-player">
     <div class="current-track-info">
-      <p id="nowPlayingTitle" class="now-title">Selecciona una pista</p>
-      <p id="nowPlayingMeta" class="now-meta">YŪGEN Music</p>
+      <div class="mini-cover" id="playerMiniCover">♫</div>
+      <div class="track-meta-box">
+        <p id="nowPlayingTitle" class="now-title">Selecciona una pista</p>
+        <p id="nowPlayingMeta" class="now-sub">YŪGEN Music</p>
+      </div>
     </div>
 
     <div class="player-center">
