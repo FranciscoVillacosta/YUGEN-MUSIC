@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CyberSound - Reproductor Local Persistente</title>
+  <title>CyberSound - Reproductor</title>
   <style>
     :root {
-      --bg: #090b10;
-      --card-bg: rgba(20, 26, 40, 0.75);
+      --bg: #07090e;
+      --card-bg: rgba(18, 24, 38, 0.75);
       --border: rgba(255, 255, 255, 0.08);
       --accent-cyan: #00f2fe;
       --accent-purple: #9d4edd;
@@ -34,51 +34,120 @@
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      padding: 0.75rem;
+      justify-content: center;
+      padding: 1rem 0.75rem;
     }
 
     .app-container {
       width: 100%;
-      max-width: 960px;
-      display: grid;
-      grid-template-columns: 1fr;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
       gap: 1rem;
       margin: auto;
     }
 
-    @media (min-width: 820px) {
-      body {
-        padding: 1.5rem;
-      }
-      .app-container {
-        grid-template-columns: 1.15fr 0.85fr;
-        gap: 1.5rem;
-      }
+    /* BARRA SUPERIOR */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      width: 100%;
+      flex-wrap: wrap;
     }
 
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .logo-badge {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* BUSCADOR AL LADO DEL TÍTULO */
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 0.45rem 0.8rem 0.45rem 2rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.7rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.45rem 0.85rem;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .nav-btn:hover {
+      background: var(--accent-cyan);
+      color: #07090e;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+    }
+
+    /* TARJETA DEL REPRODUCTOR */
     .card {
       background: var(--card-bg);
       backdrop-filter: var(--panel-blur);
       -webkit-backdrop-filter: var(--panel-blur);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 1.25rem;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      border-radius: 24px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.1rem;
       position: relative;
       overflow: hidden;
-    }
-
-    @media (min-width: 600px) {
-      .card {
-        border-radius: 24px;
-        padding: 1.75rem;
-        gap: 1.25rem;
-      }
+      width: 100%;
     }
 
     .card::before {
@@ -91,7 +160,7 @@
       background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
     }
 
-    /* VINILO Y VISUALIZADOR RESPONSIVOS */
+    /* VINILO Y VISUALIZADOR */
     .visualizer-stage {
       display: flex;
       flex-direction: column;
@@ -103,8 +172,8 @@
 
     .vinyl-wrapper {
       position: relative;
-      width: 130px;
-      height: 130px;
+      width: 140px;
+      height: 140px;
       margin: 0.25rem auto;
       transition: width 0.3s, height 0.3s;
     }
@@ -122,7 +191,7 @@
       height: 100%;
       border-radius: 50%;
       background: radial-gradient(circle, #222 25%, #111 26%, #1a1a1a 45%, #111 46%, #222 65%, #111 66%, #050505 100%);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 242, 254, 0.25);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 254, 0.25);
       border: 3px solid #222;
       display: flex;
       align-items: center;
@@ -151,7 +220,7 @@
       content: '';
       width: 10px;
       height: 10px;
-      background: #090b10;
+      background: #07090e;
       border-radius: 50%;
       border: 2px solid #333;
     }
@@ -178,11 +247,11 @@
     /* INFORMACIÓN DE PISTA */
     .track-meta {
       text-align: center;
-      min-height: 44px;
+      min-height: 48px;
     }
 
     .track-title {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
@@ -199,10 +268,10 @@
     .track-subtitle {
       font-size: 0.8rem;
       color: var(--text-muted);
-      margin-top: 0.2rem;
+      margin-top: 0.25rem;
     }
 
-    /* BARRA DE PROGRESO TÁCTIL */
+    /* BARRA DE TIEMPO */
     .time-rail-box {
       display: flex;
       align-items: center;
@@ -238,7 +307,7 @@
       pointer-events: none;
     }
 
-    /* BOTONES */
+    /* CONTROLES */
     .controls {
       display: flex;
       justify-content: space-evenly;
@@ -264,8 +333,8 @@
     }
 
     .btn-main {
-      width: 54px;
-      height: 54px;
+      width: 56px;
+      height: 56px;
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
       color: #05070d;
       font-size: 1.35rem;
@@ -274,8 +343,8 @@
 
     @media (min-width: 600px) {
       .btn-main {
-        width: 60px;
-        height: 60px;
+        width: 62px;
+        height: 62px;
         font-size: 1.5rem;
       }
       .btn-main:hover {
@@ -305,7 +374,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 0.4rem;
+      padding-top: 0.5rem;
       border-top: 1px solid var(--border);
     }
 
@@ -322,155 +391,25 @@
       width: 90px;
       height: 5px;
     }
-
-    /* DROPZONE Y LISTA */
-    .dropzone {
-      border: 2px dashed rgba(0, 242, 254, 0.35);
-      border-radius: 14px;
-      padding: 1rem;
-      text-align: center;
-      cursor: pointer;
-      background: rgba(0, 242, 254, 0.03);
-      transition: all 0.2s;
-    }
-
-    .dropzone:hover, .dropzone.active {
-      border-color: var(--accent-cyan);
-      background: rgba(0, 242, 254, 0.08);
-    }
-
-    .dropzone h4 {
-      font-size: 0.9rem;
-      color: #fff;
-    }
-
-    .dropzone p {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 0.2rem;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    .search-input {
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid var(--border);
-      color: #fff;
-      padding: 0.65rem 0.9rem;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      outline: none;
-    }
-
-    .search-input:focus {
-      border-color: var(--accent-cyan);
-    }
-
-    .playlist-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .playlist-head span {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .clear-btn {
-      font-size: 0.75rem;
-      color: var(--accent-pink);
-      border: 1px solid var(--accent-pink);
-      padding: 0.3rem 0.65rem;
-      border-radius: 8px;
-    }
-
-    .clear-btn:active {
-      background: var(--accent-pink);
-      color: #fff;
-    }
-
-    .track-list {
-      list-style: none;
-      overflow-y: auto;
-      max-height: 250px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      -webkit-overflow-scrolling: touch;
-      padding-right: 0.2rem;
-    }
-
-    @media (min-width: 820px) {
-      .track-list {
-        max-height: 280px;
-      }
-    }
-
-    .track-list::-webkit-scrollbar {
-      width: 5px;
-    }
-    .track-list::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 4px;
-    }
-
-    .track-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: var(--touch-size);
-      padding: 0.4rem 0.75rem;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.03);
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: background 0.15s;
-    }
-
-    .track-item.playing {
-      background: linear-gradient(90deg, rgba(0, 242, 254, 0.15), rgba(157, 78, 221, 0.15));
-      border-left: 3px solid var(--accent-cyan);
-      color: var(--accent-cyan);
-    }
-
-    .track-name-box {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      flex: 1;
-    }
-
-    .del-btn {
-      color: var(--text-muted);
-      width: var(--touch-size);
-      height: var(--touch-size);
-      font-size: 0.9rem;
-    }
-
-    .del-btn:hover, .del-btn:active {
-      color: var(--accent-pink);
-    }
-
-    .empty-msg {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      padding: 2rem 0;
-    }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <!-- PANEL PRINCIPAL (REPRODUCTOR + ESPECTRO) -->
-    <div class="card">
+    <!-- BARRA SUPERIOR -->
+    <header class="top-nav">
+      <div class="brand-group">
+        <span class="logo-badge">CYBERSOUND</span>
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="searchInput" placeholder="Buscar canción...">
+        </div>
+      </div>
+      <a href="agregar.html" class="nav-btn">➕ Gestionar Música</a>
+    </header>
+
+    <!-- TARJETA DEL REPRODUCTOR (ÚNICA) -->
+    <main class="card">
       <div class="visualizer-stage">
         <div class="vinyl-wrapper">
           <div class="vinyl" id="vinyl">
@@ -481,7 +420,7 @@
       </div>
 
       <div class="track-meta">
-        <div class="track-title" id="trackTitle">Selecciona una pista</div>
+        <div class="track-title" id="trackTitle">Cargando biblioteca...</div>
         <div class="track-subtitle" id="trackSubtitle">Sin reproducción activa</div>
       </div>
 
@@ -508,29 +447,9 @@
           <span id="volIcon" style="cursor: pointer; user-select: none;">🔊</span>
           <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8">
         </div>
-        <span style="font-size: 0.75rem; color: var(--text-muted);">IndexedDB Storage</span>
+        <span id="queueBadge" style="font-size: 0.75rem; color: var(--text-muted);">0 canciones</span>
       </div>
-    </div>
-
-    <!-- PANEL DERECHO (IMPORTACIÓN Y COLA) -->
-    <div class="card">
-      <div class="dropzone" id="dropzone">
-        <h4>Toca o arrastra tus canciones aquí</h4>
-        <p>Soporta MP3, WAV, FLAC, OGG, AAC, M4A</p>
-        <input type="file" id="fileInput" multiple accept="audio/*">
-      </div>
-
-      <input type="text" class="search-input" id="searchInput" placeholder="Filtrar canciones...">
-
-      <div class="playlist-head">
-        <span id="queueInfo">Cola (0 pistas)</span>
-        <button class="clear-btn" id="clearBtn">Vaciar</button>
-      </div>
-
-      <ul class="track-list" id="trackList">
-        <li class="empty-msg">Agrega música arriba para comenzar.</li>
-      </ul>
-    </div>
+    </main>
   </div>
 
   <audio id="audioEl" crossorigin="anonymous" playsinline></audio>
@@ -556,25 +475,6 @@
       });
     }
 
-    async function dbSaveTrack(file) {
-      const db = await openDatabase();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        const store = tx.objectStore(STORE_NAME);
-        const record = {
-          name: file.name.replace(/\.[^/.]+$/, ""),
-          blob: file, // Se guarda el binario permanente
-          createdAt: Date.now()
-        };
-        const req = store.add(record);
-        req.onsuccess = () => {
-          record.id = req.result;
-          resolve(record);
-        };
-        req.onerror = () => reject(req.error);
-      });
-    }
-
     async function dbGetAllTracks() {
       const db = await openDatabase();
       return new Promise((resolve, reject) => {
@@ -586,32 +486,10 @@
       });
     }
 
-    async function dbDeleteTrack(id) {
-      const db = await openDatabase();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        const store = tx.objectStore(STORE_NAME);
-        const req = store.delete(id);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function dbClearAll() {
-      const db = await openDatabase();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        const store = tx.objectStore(STORE_NAME);
-        const req = store.clear();
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
-      });
-    }
-
     /* ==========================================================
        2. ESTADO DEL REPRODUCTOR
        ========================================================== */
-    let playlist = []; // { id, name, blob, objectUrl }
+    let playlist = [];
     let currentIndex = -1;
     let isShuffle = false;
     let loopMode = 0; // 0: None, 1: Loop All, 2: Loop One
@@ -640,11 +518,7 @@
     const durationEl = document.getElementById("duration");
     const trackTitle = document.getElementById("trackTitle");
     const trackSubtitle = document.getElementById("trackSubtitle");
-    const dropzone = document.getElementById("dropzone");
-    const fileInput = document.getElementById("fileInput");
-    const trackList = document.getElementById("trackList");
-    const queueInfo = document.getElementById("queueInfo");
-    const clearBtn = document.getElementById("clearBtn");
+    const queueBadge = document.getElementById("queueBadge");
     const searchInput = document.getElementById("searchInput");
 
     // CANVAS RESPONSIVO
@@ -654,7 +528,6 @@
       canvas.height = window.innerWidth < 600 ? 65 : 75;
     }
     window.addEventListener("resize", resizeCanvas);
-    window.addEventListener("DOMContentLoaded", resizeCanvas);
 
     // INICIALIZACIÓN AUDIO API (VISUALIZADOR)
     function initWebAudio() {
@@ -671,7 +544,7 @@
       renderSpectrum();
     }
 
-    // ESPECTRO DE LÍNEAS/BARRAS EN TIEMPO REAL
+    // ESPECTRO DE LÍNEAS NEÓN EN TIEMPO REAL
     function renderSpectrum() {
       requestAnimationFrame(renderSpectrum);
       const bufferLength = analyser.frequencyBinCount;
@@ -696,7 +569,7 @@
       }
     }
 
-    // PANTALLA DE BLOQUEO / MEDIA SESSION (MÓVIL)
+    // MEDIA SESSION (PANTALLA DE BLOQUEO EN MÓVIL)
     function syncMediaSession(track) {
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -711,7 +584,7 @@
       }
     }
 
-    // CARGA DE PISTA
+    // REPRODUCCIÓN
     function loadTrack(index, autoPlay = true) {
       if (index < 0 || index >= playlist.length) return;
       currentIndex = index;
@@ -722,9 +595,8 @@
 
       audio.src = track.objectUrl;
       trackTitle.textContent = track.name;
-      trackSubtitle.textContent = "Almacenado localmente";
+      trackSubtitle.textContent = `Pista ${currentIndex + 1} de ${playlist.length}`;
 
-      renderPlaylist();
       syncMediaSession(track);
 
       if (autoPlay) {
@@ -788,79 +660,17 @@
       return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    function renderPlaylist() {
-      trackList.innerHTML = "";
-      queueInfo.textContent = `Cola (${playlist.length} pistas)`;
-
-      if (playlist.length === 0) {
-        trackList.innerHTML = `<li class="empty-msg">Agrega música arriba para comenzar.</li>`;
-        trackTitle.textContent = "Selecciona una pista";
-        trackSubtitle.textContent = "Sin reproducción activa";
-        vinyl.classList.remove("spinning");
-        playBtn.textContent = "▶";
-        return;
-      }
-
-      const filter = searchInput.value.toLowerCase();
-
-      playlist.forEach((track, idx) => {
-        if (filter && !track.name.toLowerCase().includes(filter)) return;
-
-        const li = document.createElement("li");
-        li.className = `track-item ${idx === currentIndex ? 'playing' : ''}`;
-
-        const nameBox = document.createElement("div");
-        nameBox.className = "track-name-box";
-        nameBox.innerHTML = `<span>${idx + 1}.</span> <span>${track.name}</span>`;
-        nameBox.onclick = () => loadTrack(idx);
-
-        const delBtn = document.createElement("button");
-        delBtn.className = "del-btn";
-        delBtn.innerHTML = "✕";
-        delBtn.onclick = async (e) => {
-          e.stopPropagation();
-          await removeTrack(idx);
-        };
-
-        li.appendChild(nameBox);
-        li.appendChild(delBtn);
-        trackList.appendChild(li);
-      });
-    }
-
-    async function removeTrack(index) {
-      const item = playlist[index];
-      await dbDeleteTrack(item.id);
-      if (item.objectUrl) URL.revokeObjectURL(item.objectUrl);
-      playlist.splice(index, 1);
-
-      if (index === currentIndex) {
-        audio.pause();
-        audio.src = "";
-        if (playlist.length > 0) {
-          loadTrack(Math.min(index, playlist.length - 1), false);
-        } else {
-          currentIndex = -1;
+    // BUSCADOR RÁPIDO: salta a la primera coincidencia
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) return;
+        const foundIndex = playlist.findIndex(t => t.name.toLowerCase().includes(query));
+        if (foundIndex !== -1) {
+          loadTrack(foundIndex, true);
         }
-      } else if (index < currentIndex) {
-        currentIndex--;
       }
-      renderPlaylist();
-    }
-
-    async function addFiles(files) {
-      trackSubtitle.textContent = "Guardando en disco...";
-      for (const file of files) {
-        if (!file.type.startsWith("audio/") && !file.name.match(/\.(mp3|wav|ogg|flac|aac|m4a)$/i)) continue;
-        const saved = await dbSaveTrack(file);
-        playlist.push(saved);
-      }
-      trackSubtitle.textContent = "Listo";
-      renderPlaylist();
-      if (currentIndex === -1 && playlist.length > 0) {
-        loadTrack(0, false);
-      }
-    }
+    });
 
     // CARGA INICIAL AUTOMÁTICA DESDE INDEXEDDB
     window.addEventListener("DOMContentLoaded", async () => {
@@ -869,30 +679,16 @@
         const saved = await dbGetAllTracks();
         if (saved && saved.length > 0) {
           playlist = saved;
-          renderPlaylist();
+          queueBadge.textContent = `${playlist.length} canciones`;
           loadTrack(0, false);
+        } else {
+          trackTitle.textContent = "Sin música en la biblioteca";
+          trackSubtitle.textContent = 'Pulsa "+ Gestionar Música" para añadir';
+          queueBadge.textContent = "0 canciones";
         }
       } catch (err) {
         console.error("Error al cargar tracks de DB:", err);
       }
-    });
-
-    // DRAG & DROP Y SELECCIÓN TÁCTIL
-    dropzone.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", (e) => {
-      addFiles(e.target.files);
-      fileInput.value = "";
-    });
-
-    dropzone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropzone.classList.add("active");
-    });
-    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("active"));
-    dropzone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropzone.classList.remove("active");
-      if (e.dataTransfer.files) addFiles(e.dataTransfer.files);
     });
 
     // EVENTOS DE CONTROL
@@ -930,7 +726,7 @@
       }
     });
 
-    // SEEK FLUIDO PARA RATÓN Y PANTALLAS TÁCTILES
+    // BARRA DE TIEMPO TÁCTIL Y RATÓN
     function seekAudio(e) {
       if (!audio.duration) return;
       const rect = railHitbox.getBoundingClientRect();
@@ -979,22 +775,6 @@
       } else {
         loopBtn.textContent = "🔂";
         loopBtn.classList.add("active");
-      }
-    });
-
-    // BÚSQUEDA Y VACIAR
-    searchInput.addEventListener("input", renderPlaylist);
-
-    clearBtn.addEventListener("click", async () => {
-      if (playlist.length === 0) return;
-      if (confirm("¿Vaciar toda la cola y borrar las canciones almacenadas?")) {
-        await dbClearAll();
-        playlist.forEach(t => { if (t.objectUrl) URL.revokeObjectURL(t.objectUrl); });
-        playlist = [];
-        currentIndex = -1;
-        audio.pause();
-        audio.src = "";
-        renderPlaylist();
       }
     });
 
