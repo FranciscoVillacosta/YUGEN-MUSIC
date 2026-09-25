@@ -2,178 +2,1014 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <title>YŪGEN · Inicio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CyberSound - Reproductor Local Persistente</title>
   <style>
-    /* Estilos del desplegable de búsqueda de YouTube */
-    .yt-results-dropdown {
-      display: none;
-      position: absolute;
-      top: 52px;
-      left: 0;
-      width: 100%;
-      max-height: 420px;
-      overflow-y: auto;
-      background: #141022;
-      border: 1px solid #2d224b;
-      border-radius: 10px;
-      z-index: 1000;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+    :root {
+      --bg: #090b10;
+      --card-bg: rgba(20, 26, 40, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-purple: #9d4edd;
+      --accent-pink: #ff007f;
+      --text: #ffffff;
+      --text-muted: #8b9bb4;
+      --panel-blur: blur(20px);
+      --touch-size: 44px;
     }
-    .yt-item {
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(157, 78, 221, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, rgba(0, 242, 254, 0.18) 0%, transparent 45%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.75rem;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin: auto;
+    }
+
+    @media (min-width: 820px) {
+      body {
+        padding: 1.5rem;
+      }
+      .app-container {
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 1.5rem;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: var(--panel-blur);
+      -webkit-backdrop-filter: var(--panel-blur);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.25rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media (min-width: 600px) {
+      .card {
+        border-radius: 24px;
+        padding: 1.75rem;
+        gap: 1.25rem;
+      }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+    }
+
+    /* VINILO Y VISUALIZADOR RESPONSIVOS */
+    .visualizer-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    .vinyl-wrapper {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      margin: 0.25rem auto;
+      transition: width 0.3s, height 0.3s;
+    }
+
+    @media (min-width: 600px) {
+      .vinyl-wrapper {
+        width: 180px;
+        height: 180px;
+        margin: 0.5rem auto;
+      }
+    }
+
+    .vinyl {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #222 25%, #111 26%, #1a1a1a 45%, #111 46%, #222 65%, #111 66%, #050505 100%);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 242, 254, 0.25);
+      border: 3px solid #222;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border-bottom: 1px solid #1f1836;
-      cursor: pointer;
-      transition: background 0.2s;
+      justify-content: center;
+      animation: rotateVinyl 8s linear infinite;
+      animation-play-state: paused;
     }
-    .yt-item:hover {
-      background: #231b40;
+
+    .vinyl.spinning {
+      animation-play-state: running;
     }
-    .yt-thumb {
-      width: 56px;
-      height: 42px;
-      object-fit: cover;
-      border-radius: 6px;
+
+    .vinyl-label {
+      width: 35%;
+      height: 35%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-pink));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border: 3px solid #111;
     }
-    .yt-info {
-      flex: 1;
-      min-width: 0;
+
+    .vinyl-label::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background: #090b10;
+      border-radius: 50%;
+      border: 2px solid #333;
     }
-    .yt-title {
-      color: #ffffff;
-      font-size: 13px;
-      font-weight: 600;
-      margin: 0;
+
+    @keyframes rotateVinyl {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    canvas {
+      width: 100%;
+      height: 65px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.35);
+      display: block;
+    }
+
+    @media (min-width: 600px) {
+      canvas {
+        height: 75px;
+      }
+    }
+
+    /* INFORMACIÓN DE PISTA */
+    .track-meta {
+      text-align: center;
+      min-height: 44px;
+    }
+
+    .track-title {
+      font-size: 1.1rem;
+      font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: #fff;
     }
-    .yt-channel {
-      color: #9d8ec2;
-      font-size: 11px;
-      margin: 3px 0 0 0;
+
+    @media (min-width: 600px) {
+      .track-title {
+        font-size: 1.25rem;
+      }
     }
-    .btn-yt-dl {
-      background: #00f5d4;
-      color: #000;
-      font-weight: 800;
-      font-size: 11px;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
+
+    .track-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* BARRA DE PROGRESO TÁCTIL */
+    .time-rail-box {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      user-select: none;
+    }
+
+    .rail-hitbox {
+      flex: 1;
+      height: 28px;
+      display: flex;
+      align-items: center;
       cursor: pointer;
+      touch-action: none;
+    }
+
+    .rail {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rail-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 10px;
+      width: 0%;
+      pointer-events: none;
+    }
+
+    /* BOTONES */
+    .controls {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      touch-action: manipulation;
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.92);
+    }
+
+    .btn-main {
+      width: 54px;
+      height: 54px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: #05070d;
+      font-size: 1.35rem;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    }
+
+    @media (min-width: 600px) {
+      .btn-main {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+      }
+      .btn-main:hover {
+        transform: scale(1.08);
+        box-shadow: 0 0 30px rgba(0, 242, 254, 0.7);
+        color: #000;
+      }
+      button:hover {
+        color: var(--accent-cyan);
+      }
+    }
+
+    .btn-sub {
+      width: var(--touch-size);
+      height: var(--touch-size);
+      font-size: 1.15rem;
+      color: var(--text-muted);
+    }
+
+    .btn-sub.active {
+      color: var(--accent-cyan);
+      text-shadow: 0 0 10px var(--accent-cyan);
+    }
+
+    /* VOLUMEN */
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0.4rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .vol-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+      width: 90px;
+      height: 5px;
+    }
+
+    /* DROPZONE Y LISTA */
+    .dropzone {
+      border: 2px dashed rgba(0, 242, 254, 0.35);
+      border-radius: 14px;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(0, 242, 254, 0.03);
+      transition: all 0.2s;
+    }
+
+    .dropzone:hover, .dropzone.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.08);
+    }
+
+    .dropzone h4 {
+      font-size: 0.9rem;
+      color: #fff;
+    }
+
+    .dropzone p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .search-input {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 0.65rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .playlist-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .playlist-head span {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .clear-btn {
+      font-size: 0.75rem;
+      color: var(--accent-pink);
+      border: 1px solid var(--accent-pink);
+      padding: 0.3rem 0.65rem;
+      border-radius: 8px;
+    }
+
+    .clear-btn:active {
+      background: var(--accent-pink);
+      color: #fff;
+    }
+
+    .track-list {
+      list-style: none;
+      overflow-y: auto;
+      max-height: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 0.2rem;
+    }
+
+    @media (min-width: 820px) {
+      .track-list {
+        max-height: 280px;
+      }
+    }
+
+    .track-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .track-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .track-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: var(--touch-size);
+      padding: 0.4rem 0.75rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.15s;
+    }
+
+    .track-item.playing {
+      background: linear-gradient(90deg, rgba(0, 242, 254, 0.15), rgba(157, 78, 221, 0.15));
+      border-left: 3px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .track-name-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .del-btn {
+      color: var(--text-muted);
+      width: var(--touch-size);
+      height: var(--touch-size);
+      font-size: 0.9rem;
+    }
+
+    .del-btn:hover, .del-btn:active {
+      color: var(--accent-pink);
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 2rem 0;
     }
   </style>
 </head>
 <body>
 
-  <!-- Fondo oscuro al abrir el menú en celular -->
-  <div class="menu-overlay" id="menuOverlay"></div>
-
-  <div class="app-layout">
-    <!-- BARRA LATERAL IZQUIERDA -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-brand">
-          <div class="brand-badge">♫</div>
-          <span class="brand-name">YŪGEN</span>
+  <div class="app-container">
+    <!-- PANEL PRINCIPAL (REPRODUCTOR + ESPECTRO) -->
+    <div class="card">
+      <div class="visualizer-stage">
+        <div class="vinyl-wrapper">
+          <div class="vinyl" id="vinyl">
+            <div class="vinyl-label"></div>
+          </div>
         </div>
-        <button type="button" class="btn-close-menu" id="btnCloseMenu">✕</button>
+        <canvas id="visualizerCanvas"></canvas>
       </div>
 
-      <nav class="sidebar-nav">
-        <a href="index.html" class="nav-item active">
-          <span class="nav-icon">🏠</span>
-          <span>Inicio</span>
-        </a>
-        <a href="carga.html" class="nav-item">
-          <span class="nav-icon">⭳</span>
-          <span>Descargar</span>
-        </a>
-      </nav>
-
-      <div class="sidebar-section">
-        <p class="sidebar-subtitle">TU BIBLIOTECA</p>
-        <input type="file" id="audioPicker" accept="audio/*" multiple style="display: none;" />
-        <button type="button" id="btnUpload" class="btn-sidebar-add">
-          <span>+</span> Subir Archivos
-        </button>
+      <div class="track-meta">
+        <div class="track-title" id="trackTitle">Selecciona una pista</div>
+        <div class="track-subtitle" id="trackSubtitle">Sin reproducción activa</div>
       </div>
 
-      <div class="sidebar-genres">
-        <p class="sidebar-subtitle">GÉNEROS</p>
-        <button type="button" class="genre-link active" data-genre="Todos">Todos</button>
-        <button type="button" class="genre-link" data-genre="Lo-Fi">Lo-Fi</button>
-        <button type="button" class="genre-link" data-genre="Trap / Rap">Trap / Rap</button>
-        <button type="button" class="genre-link" data-genre="Rock">Rock</button>
-        <button type="button" class="genre-link" data-genre="Pop">Pop</button>
-        <button type="button" class="genre-link" data-genre="Otros">Otros</button>
+      <div class="time-rail-box">
+        <span id="currentTime">0:00</span>
+        <div class="rail-hitbox" id="railHitbox">
+          <div class="rail">
+            <div class="rail-fill" id="railFill"></div>
+          </div>
+        </div>
+        <span id="duration">0:00</span>
       </div>
-    </aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="main-content">
-      <!-- Barra superior con buscador -->
-      <header class="top-nav">
-        <button type="button" class="btn-menu-toggle" id="btnMenuToggle" aria-label="Abrir Menú">
-          ☰
-        </button>
+      <div class="controls">
+        <button class="btn-sub" id="shuffleBtn" title="Aleatorio">🔀</button>
+        <button class="btn-sub" id="prevBtn" title="Anterior">⏮</button>
+        <button class="btn-main" id="playBtn" title="Reproducir">▶</button>
+        <button class="btn-sub" id="nextBtn" title="Siguiente">⏭</button>
+        <button class="btn-sub" id="loopBtn" title="Repetir">🔁</button>
+      </div>
 
-        <div class="search-wrapper" style="position: relative;">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="localSearchInput" placeholder="Busca canciones en YouTube o en tu biblioteca..." autocomplete="off" />
-          
-          <!-- Lista desplegable de YouTube -->
-          <div id="ytDropdown" class="yt-results-dropdown"></div>
+      <div class="bottom-bar">
+        <div class="vol-ctrl">
+          <span id="volIcon" style="cursor: pointer; user-select: none;">🔊</span>
+          <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8">
         </div>
-      </header>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">IndexedDB Storage</span>
+      </div>
+    </div>
 
-      <section class="shelf-section">
-        <div class="shelf-header">
-          <h2 id="sectionTitle">Tus Canciones</h2>
-          <span id="trackCount" class="shelf-count">0 canciones</span>
-        </div>
+    <!-- PANEL DERECHO (IMPORTACIÓN Y COLA) -->
+    <div class="card">
+      <div class="dropzone" id="dropzone">
+        <h4>Toca o arrastra tus canciones aquí</h4>
+        <p>Soporta MP3, WAV, FLAC, OGG, AAC, M4A</p>
+        <input type="file" id="fileInput" multiple accept="audio/*">
+      </div>
 
-        <div id="emptyState" class="empty-shelf" style="display: none;">
-          <div class="empty-icon">📁</div>
-          <h3>Tu biblioteca está vacía</h3>
-          <p>Sube canciones desde tu dispositivo o busca en YouTube arriba.</p>
-        </div>
+      <input type="text" class="search-input" id="searchInput" placeholder="Filtrar canciones...">
 
-        <div id="songsGrid" class="cards-grid"></div>
-      </section>
-    </main>
+      <div class="playlist-head">
+        <span id="queueInfo">Cola (0 pistas)</span>
+        <button class="clear-btn" id="clearBtn">Vaciar</button>
+      </div>
+
+      <ul class="track-list" id="trackList">
+        <li class="empty-msg">Agrega música arriba para comenzar.</li>
+      </ul>
+    </div>
   </div>
 
-  <!-- REPRODUCTOR FIJO INFERIOR -->
-  <footer class="bottom-player">
-    <div class="current-track-info">
-      <div class="mini-cover" id="playerMiniCover">♫</div>
-      <div class="track-meta-box">
-        <p id="nowPlayingTitle" class="now-title">Selecciona una pista</p>
-        <p id="nowPlayingMeta" class="now-sub">YŪGEN Music</p>
-      </div>
-    </div>
+  <audio id="audioEl" crossorigin="anonymous" playsinline></audio>
 
-    <div class="player-center">
-      <div class="controls">
-        <button type="button" class="btn-ctrl" id="prevBtn">⏮</button>
-        <button type="button" class="btn-ctrl play" id="playPauseBtn">▶</button>
-        <button type="button" class="btn-ctrl" id="nextBtn">⏭</button>
-      </div>
+  <script>
+    /* ==========================================================
+       1. BASE DE DATOS LOCAL (INDEXEDDB)
+       ========================================================== */
+    const DB_NAME = "CyberSoundDB";
+    const STORE_NAME = "audioTracks";
 
-      <div class="progress-container">
-        <span id="currentTime">0:00</span>
-        <input type="range" id="progressBar" min="0" max="100" value="0" />
-        <span id="totalDuration">0:00</span>
-      </div>
-    </div>
-  </footer>
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
 
-  <script src="app.js"></script>
+    async function dbSaveTrack(file) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const record = {
+          name: file.name.replace(/\.[^/.]+$/, ""),
+          blob: file, // Se guarda el binario permanente
+          createdAt: Date.now()
+        };
+        const req = store.add(record);
+        req.onsuccess = () => {
+          record.id = req.result;
+          resolve(record);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbGetAllTracks() {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbDeleteTrack(id) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbClearAll() {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    /* ==========================================================
+       2. ESTADO DEL REPRODUCTOR
+       ========================================================== */
+    let playlist = []; // { id, name, blob, objectUrl }
+    let currentIndex = -1;
+    let isShuffle = false;
+    let loopMode = 0; // 0: None, 1: Loop All, 2: Loop One
+
+    // AUDIO API
+    let audioCtx = null;
+    let analyser = null;
+    let sourceNode = null;
+    let isAudioCtxInit = false;
+
+    // DOM
+    const audio = document.getElementById("audioEl");
+    const vinyl = document.getElementById("vinyl");
+    const canvas = document.getElementById("visualizerCanvas");
+    const ctx = canvas.getContext("2d");
+    const playBtn = document.getElementById("playBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const loopBtn = document.getElementById("loopBtn");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const volIcon = document.getElementById("volIcon");
+    const railHitbox = document.getElementById("railHitbox");
+    const railFill = document.getElementById("railFill");
+    const currentTimeEl = document.getElementById("currentTime");
+    const durationEl = document.getElementById("duration");
+    const trackTitle = document.getElementById("trackTitle");
+    const trackSubtitle = document.getElementById("trackSubtitle");
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("fileInput");
+    const trackList = document.getElementById("trackList");
+    const queueInfo = document.getElementById("queueInfo");
+    const clearBtn = document.getElementById("clearBtn");
+    const searchInput = document.getElementById("searchInput");
+
+    // CANVAS RESPONSIVO
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width || canvas.parentElement.clientWidth;
+      canvas.height = window.innerWidth < 600 ? 65 : 75;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("DOMContentLoaded", resizeCanvas);
+
+    // INICIALIZACIÓN AUDIO API (VISUALIZADOR)
+    function initWebAudio() {
+      if (isAudioCtxInit) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 128;
+
+      sourceNode = audioCtx.createMediaElementSource(audio);
+      sourceNode.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      isAudioCtxInit = true;
+      renderSpectrum();
+    }
+
+    // ESPECTRO DE LÍNEAS/BARRAS EN TIEMPO REAL
+    function renderSpectrum() {
+      requestAnimationFrame(renderSpectrum);
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const barWidth = (canvas.width / bufferLength) * 1.5;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height;
+        const grad = ctx.createLinearGradient(0, canvas.height, 0, 0);
+        grad.addColorStop(0, '#00f2fe');
+        grad.addColorStop(0.5, '#9d4edd');
+        grad.addColorStop(1, '#ff007f');
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+        x += barWidth;
+      }
+    }
+
+    // PANTALLA DE BLOQUEO / MEDIA SESSION (MÓVIL)
+    function syncMediaSession(track) {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: track.name,
+          artist: 'CyberSound Local',
+          album: 'Mi Biblioteca'
+        });
+        navigator.mediaSession.setActionHandler('play', togglePlay);
+        navigator.mediaSession.setActionHandler('pause', togglePlay);
+        navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+        navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+      }
+    }
+
+    // CARGA DE PISTA
+    function loadTrack(index, autoPlay = true) {
+      if (index < 0 || index >= playlist.length) return;
+      currentIndex = index;
+      const track = playlist[currentIndex];
+
+      if (track.objectUrl) URL.revokeObjectURL(track.objectUrl);
+      track.objectUrl = URL.createObjectURL(track.blob);
+
+      audio.src = track.objectUrl;
+      trackTitle.textContent = track.name;
+      trackSubtitle.textContent = "Almacenado localmente";
+
+      renderPlaylist();
+      syncMediaSession(track);
+
+      if (autoPlay) {
+        initWebAudio();
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        audio.play().catch(() => {});
+      }
+    }
+
+    function togglePlay() {
+      if (playlist.length === 0) return;
+      if (currentIndex === -1) {
+        loadTrack(0);
+        return;
+      }
+      initWebAudio();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+
+    function nextTrack() {
+      if (playlist.length === 0) return;
+      if (isShuffle && playlist.length > 1) {
+        let rand;
+        do {
+          rand = Math.floor(Math.random() * playlist.length);
+        } while (rand === currentIndex);
+        loadTrack(rand);
+        return;
+      }
+      let next = currentIndex + 1;
+      if (next >= playlist.length) {
+        if (loopMode === 1) next = 0;
+        else return;
+      }
+      loadTrack(next);
+    }
+
+    function prevTrack() {
+      if (playlist.length === 0) return;
+      if (audio.currentTime > 3) {
+        audio.currentTime = 0;
+        return;
+      }
+      let prev = currentIndex - 1;
+      if (prev < 0) {
+        prev = loopMode === 1 ? playlist.length - 1 : 0;
+      }
+      loadTrack(prev);
+    }
+
+    function formatTime(sec) {
+      if (isNaN(sec)) return "0:00";
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function renderPlaylist() {
+      trackList.innerHTML = "";
+      queueInfo.textContent = `Cola (${playlist.length} pistas)`;
+
+      if (playlist.length === 0) {
+        trackList.innerHTML = `<li class="empty-msg">Agrega música arriba para comenzar.</li>`;
+        trackTitle.textContent = "Selecciona una pista";
+        trackSubtitle.textContent = "Sin reproducción activa";
+        vinyl.classList.remove("spinning");
+        playBtn.textContent = "▶";
+        return;
+      }
+
+      const filter = searchInput.value.toLowerCase();
+
+      playlist.forEach((track, idx) => {
+        if (filter && !track.name.toLowerCase().includes(filter)) return;
+
+        const li = document.createElement("li");
+        li.className = `track-item ${idx === currentIndex ? 'playing' : ''}`;
+
+        const nameBox = document.createElement("div");
+        nameBox.className = "track-name-box";
+        nameBox.innerHTML = `<span>${idx + 1}.</span> <span>${track.name}</span>`;
+        nameBox.onclick = () => loadTrack(idx);
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "del-btn";
+        delBtn.innerHTML = "✕";
+        delBtn.onclick = async (e) => {
+          e.stopPropagation();
+          await removeTrack(idx);
+        };
+
+        li.appendChild(nameBox);
+        li.appendChild(delBtn);
+        trackList.appendChild(li);
+      });
+    }
+
+    async function removeTrack(index) {
+      const item = playlist[index];
+      await dbDeleteTrack(item.id);
+      if (item.objectUrl) URL.revokeObjectURL(item.objectUrl);
+      playlist.splice(index, 1);
+
+      if (index === currentIndex) {
+        audio.pause();
+        audio.src = "";
+        if (playlist.length > 0) {
+          loadTrack(Math.min(index, playlist.length - 1), false);
+        } else {
+          currentIndex = -1;
+        }
+      } else if (index < currentIndex) {
+        currentIndex--;
+      }
+      renderPlaylist();
+    }
+
+    async function addFiles(files) {
+      trackSubtitle.textContent = "Guardando en disco...";
+      for (const file of files) {
+        if (!file.type.startsWith("audio/") && !file.name.match(/\.(mp3|wav|ogg|flac|aac|m4a)$/i)) continue;
+        const saved = await dbSaveTrack(file);
+        playlist.push(saved);
+      }
+      trackSubtitle.textContent = "Listo";
+      renderPlaylist();
+      if (currentIndex === -1 && playlist.length > 0) {
+        loadTrack(0, false);
+      }
+    }
+
+    // CARGA INICIAL AUTOMÁTICA DESDE INDEXEDDB
+    window.addEventListener("DOMContentLoaded", async () => {
+      resizeCanvas();
+      try {
+        const saved = await dbGetAllTracks();
+        if (saved && saved.length > 0) {
+          playlist = saved;
+          renderPlaylist();
+          loadTrack(0, false);
+        }
+      } catch (err) {
+        console.error("Error al cargar tracks de DB:", err);
+      }
+    });
+
+    // DRAG & DROP Y SELECCIÓN TÁCTIL
+    dropzone.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => {
+      addFiles(e.target.files);
+      fileInput.value = "";
+    });
+
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("active");
+    });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("active"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("active");
+      if (e.dataTransfer.files) addFiles(e.dataTransfer.files);
+    });
+
+    // EVENTOS DE CONTROL
+    playBtn.addEventListener("click", togglePlay);
+    nextBtn.addEventListener("click", nextTrack);
+    prevBtn.addEventListener("click", prevTrack);
+
+    audio.addEventListener("play", () => {
+      playBtn.textContent = "⏸";
+      vinyl.classList.add("spinning");
+    });
+
+    audio.addEventListener("pause", () => {
+      playBtn.textContent = "▶";
+      vinyl.classList.remove("spinning");
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      if (!audio.duration) return;
+      const pct = (audio.currentTime / audio.duration) * 100;
+      railFill.style.width = `${pct}%`;
+      currentTimeEl.textContent = formatTime(audio.currentTime);
+    });
+
+    audio.addEventListener("loadedmetadata", () => {
+      durationEl.textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener("ended", () => {
+      if (loopMode === 2) {
+        audio.currentTime = 0;
+        audio.play();
+      } else {
+        nextTrack();
+      }
+    });
+
+    // SEEK FLUIDO PARA RATÓN Y PANTALLAS TÁCTILES
+    function seekAudio(e) {
+      if (!audio.duration) return;
+      const rect = railHitbox.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      audio.currentTime = pos * audio.duration;
+    }
+
+    railHitbox.addEventListener("click", seekAudio);
+    railHitbox.addEventListener("touchmove", seekAudio, { passive: true });
+
+    // VOLUMEN
+    volumeSlider.addEventListener("input", (e) => {
+      audio.volume = parseFloat(e.target.value);
+      volIcon.textContent = audio.volume === 0 ? "🔇" : "🔊";
+    });
+
+    volIcon.addEventListener("click", () => {
+      if (audio.volume > 0) {
+        audio.dataset.prevVol = audio.volume;
+        audio.volume = 0;
+        volumeSlider.value = 0;
+        volIcon.textContent = "🔇";
+      } else {
+        const prev = audio.dataset.prevVol || 0.8;
+        audio.volume = prev;
+        volumeSlider.value = prev;
+        volIcon.textContent = "🔊";
+      }
+    });
+
+    // REPETIR Y SHUFFLE
+    shuffleBtn.addEventListener("click", () => {
+      isShuffle = !isShuffle;
+      shuffleBtn.classList.toggle("active", isShuffle);
+    });
+
+    loopBtn.addEventListener("click", () => {
+      loopMode = (loopMode + 1) % 3;
+      if (loopMode === 0) {
+        loopBtn.textContent = "🔁";
+        loopBtn.classList.remove("active");
+      } else if (loopMode === 1) {
+        loopBtn.textContent = "🔁";
+        loopBtn.classList.add("active");
+      } else {
+        loopBtn.textContent = "🔂";
+        loopBtn.classList.add("active");
+      }
+    });
+
+    // BÚSQUEDA Y VACIAR
+    searchInput.addEventListener("input", renderPlaylist);
+
+    clearBtn.addEventListener("click", async () => {
+      if (playlist.length === 0) return;
+      if (confirm("¿Vaciar toda la cola y borrar las canciones almacenadas?")) {
+        await dbClearAll();
+        playlist.forEach(t => { if (t.objectUrl) URL.revokeObjectURL(t.objectUrl); });
+        playlist = [];
+        currentIndex = -1;
+        audio.pause();
+        audio.src = "";
+        renderPlaylist();
+      }
+    });
+
+    // ATAJOS DE TECLADO (PC)
+    window.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT") return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.code === "ArrowRight") {
+        audio.currentTime = Math.min(audio.currentTime + 5, audio.duration || 0);
+      } else if (e.code === "ArrowLeft") {
+        audio.currentTime = Math.max(audio.currentTime - 5, 0);
+      }
+    });
+  </script>
 </body>
 </html>
