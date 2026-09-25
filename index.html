@@ -5,6 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <title>YŪGEN · Inicio</title>
+  <style>
+    /* Estilos del desplegable de búsqueda de YouTube */
+    .yt-results-dropdown {
+      display: none;
+      position: absolute;
+      top: 52px;
+      left: 0;
+      width: 100%;
+      max-height: 420px;
+      overflow-y: auto;
+      background: #141022;
+      border: 1px solid #2d224b;
+      border-radius: 10px;
+      z-index: 1000;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+    }
+    .yt-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #1f1836;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .yt-item:hover {
+      background: #231b40;
+    }
+    .yt-thumb {
+      width: 56px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .yt-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .yt-title {
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .yt-channel {
+      color: #9d8ec2;
+      font-size: 11px;
+      margin: 3px 0 0 0;
+    }
+    .btn-yt-dl {
+      background: #00f5d4;
+      color: #000;
+      font-weight: 800;
+      font-size: 11px;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
@@ -12,14 +75,13 @@
   <div class="menu-overlay" id="menuOverlay"></div>
 
   <div class="app-layout">
-    <!-- BARRA LATERAL IZQUIERDA (Desplegable en móvil) -->
+    <!-- BARRA LATERAL IZQUIERDA -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <div class="brand-badge">♫</div>
           <span class="brand-name">YŪGEN</span>
         </div>
-        <!-- Botón cerrar solo visible en celular -->
         <button type="button" class="btn-close-menu" id="btnCloseMenu">✕</button>
       </div>
 
@@ -55,15 +117,18 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content">
-      <!-- Barra superior con botón hamburguesa y buscador -->
+      <!-- Barra superior con buscador -->
       <header class="top-nav">
         <button type="button" class="btn-menu-toggle" id="btnMenuToggle" aria-label="Abrir Menú">
           ☰
         </button>
 
-        <div class="search-wrapper">
+        <div class="search-wrapper" style="position: relative;">
           <span class="search-icon">🔍</span>
-          <input type="text" id="localSearchInput" placeholder="¿Qué quieres escuchar?" />
+          <input type="text" id="localSearchInput" placeholder="Busca canciones en YouTube o en tu biblioteca..." autocomplete="off" />
+          
+          <!-- Lista desplegable de YouTube -->
+          <div id="ytDropdown" class="yt-results-dropdown"></div>
         </div>
       </header>
 
@@ -76,7 +141,7 @@
         <div id="emptyState" class="empty-shelf" style="display: none;">
           <div class="empty-icon">📁</div>
           <h3>Tu biblioteca está vacía</h3>
-          <p>Sube canciones desde tu dispositivo o ve a Descargar.</p>
+          <p>Sube canciones desde tu dispositivo o busca en YouTube arriba.</p>
         </div>
 
         <div id="songsGrid" class="cards-grid"></div>
