@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CyberSound - Gestor de Música</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --card-bg: rgba(20, 26, 40, 0.78);
+      --border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-purple: #9d4edd;
+      --accent-pink: #ff007f;
+      --text: #ffffff;
+      --text-muted: #8b9bb4;
+      --panel-blur: blur(20px);
+      --touch-size: 44px;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(157, 78, 221, 0.2) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, rgba(0, 242, 254, 0.2) 0%, transparent 45%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.75rem;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin: auto;
+    }
+
+    @media (min-width: 600px) {
+      body {
+        padding: 1.5rem;
+      }
+      .app-container {
+        gap: 1.5rem;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: var(--panel-blur);
+      -webkit-backdrop-filter: var(--panel-blur);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.25rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media (min-width: 600px) {
+      .card {
+        border-radius: 24px;
+        padding: 1.75rem;
+      }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+    }
+
+    /* TOP HEADER */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.8rem;
+    }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 0.9rem;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover, .back-btn:active {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.08);
+    }
+
+    /* DROPZONE */
+    .dropzone {
+      border: 2px dashed rgba(0, 242, 254, 0.35);
+      border-radius: 16px;
+      padding: 2.2rem 1.2rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(0, 242, 254, 0.03);
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .dropzone:hover, .dropzone.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.09);
+      box-shadow: 0 0 25px rgba(0, 242, 254, 0.2);
+    }
+
+    .dropzone-icon {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    .dropzone h3 {
+      font-size: 1.1rem;
+      color: #fff;
+    }
+
+    .dropzone p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    /* STATUS BANNER */
+    .status-banner {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      color: var(--accent-cyan);
+    }
+
+    /* METADATA BAR */
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .clear-all-btn {
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      font-size: 0.75rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .clear-all-btn:hover, .clear-all-btn:active {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* LISTA DE ARCHIVOS ALMACENADOS */
+    .library-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 0.2rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .library-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .library-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .library-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 0.85rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      font-size: 0.85rem;
+      transition: background 0.15s;
+    }
+
+    .library-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .track-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      overflow: hidden;
+      flex: 1;
+      padding-right: 0.5rem;
+    }
+
+    .track-name {
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track-subinfo {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.95rem;
+      touch-action: manipulation;
+      transition: all 0.15s;
+    }
+
+    .action-btn.btn-preview:hover {
+      color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.15);
+    }
+
+    .action-btn.btn-delete:hover {
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 3rem 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="card">
+      <div class="top-nav">
+        <span class="brand-title">CYBERSOUND / BIBLIOTECA</span>
+        <a href="index.html" class="back-btn">
+          <span>⬅</span> Volver al Reproductor
+        </a>
+      </div>
+
+      <!-- Dropzone Grande -->
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-icon">📁</div>
+        <h3>Toca o arrastra tus canciones aquí</h3>
+        <p>Los archivos se guardarán directamente en tu navegador (IndexedDB)</p>
+        <span style="font-size: 0.75rem; color: var(--accent-cyan);">MP3, WAV, FLAC, OGG, AAC, M4A</span>
+        <input type="file" id="fileInput" multiple accept="audio/*">
+      </div>
+
+      <!-- Notificación de Estado -->
+      <div class="status-banner" id="statusBanner">
+        <span id="statusIcon">⏳</span>
+        <span id="statusText">Procesando y guardando archivos...</span>
+      </div>
+
+      <!-- Barra de Metadatos -->
+      <div class="meta-bar">
+        <span id="storageStats">Guardadas: 0 canciones (0 MB)</span>
+        <button class="clear-all-btn" id="clearAllBtn">Vaciar Biblioteca</button>
+      </div>
+
+      <!-- Lista de Pistas en Almacenamiento -->
+      <ul class="library-list" id="libraryList">
+        <li class="empty-state">No hay canciones en memoria local todavía.</li>
+      </ul>
+    </div>
+  </div>
+
+  <audio id="previewAudio"></audio>
+
+  <script>
+    /* ==========================================================
+       1. BASE DE DATOS LOCAL (INDEXEDDB COMPARTIDA)
+       ========================================================== */
+    const DB_NAME = "CyberSoundDB";
+    const STORE_NAME = "audioTracks";
+
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbSaveTrack(file) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const record = {
+          name: file.name.replace(/\.[^/.]+$/, ""),
+          originalName: file.name,
+          size: file.size,
+          type: file.type,
+          blob: file,
+          createdAt: Date.now()
+        };
+        const req = store.add(record);
+        req.onsuccess = () => {
+          record.id = req.result;
+          resolve(record);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbGetAllTracks() {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbDeleteTrack(id) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbClearAll() {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    /* ==========================================================
+       2. GESTIÓN DE INTERFAZ Y ARCHIVOS
+       ========================================================== */
+    let library = [];
+    let currentPreviewId = null;
+
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("fileInput");
+    const libraryList = document.getElementById("libraryList");
+    const storageStats = document.getElementById("storageStats");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+    const statusBanner = document.getElementById("statusBanner");
+    const statusText = document.getElementById("statusText");
+    const previewAudio = document.getElementById("previewAudio");
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return "0 MB";
+      const mb = bytes / (1024 * 1024);
+      return `${mb.toFixed(1)} MB`;
+    }
+
+    function showStatus(msg, isDone = false) {
+      statusBanner.style.display = "flex";
+      statusText.textContent = msg;
+      if (isDone) {
+        setTimeout(() => {
+          statusBanner.style.display = "none";
+        }, 2500);
+      }
+    }
+
+    function renderLibrary() {
+      libraryList.innerHTML = "";
+      const totalBytes = library.reduce((acc, t) => acc + (t.size || 0), 0);
+      storageStats.textContent = `Guardadas: ${library.length} canciones (${formatBytes(totalBytes)})`;
+
+      if (library.length === 0) {
+        libraryList.innerHTML = `<li class="empty-state">No hay canciones en memoria local todavía.</li>`;
+        return;
+      }
+
+      library.forEach((track) => {
+        const li = document.createElement("li");
+        li.className = "library-item";
+
+        const details = document.createElement("div");
+        details.className = "track-details";
+        details.innerHTML = `
+          <div class="track-name">${track.name}</div>
+          <div class="track-subinfo">${formatBytes(track.size)} • Guardado localmente</div>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "item-actions";
+
+        const isPlayingThis = currentPreviewId === track.id && !previewAudio.paused;
+
+        // Botón vista previa
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "action-btn btn-preview";
+        prevBtn.title = isPlayingThis ? "Pausar vista previa" : "Escuchar vista previa";
+        prevBtn.textContent = isPlayingThis ? "⏸" : "▶";
+        prevBtn.onclick = () => togglePreview(track);
+
+        // Botón eliminar
+        const delBtn = document.createElement("button");
+        delBtn.className = "action-btn btn-delete";
+        delBtn.title = "Eliminar de la biblioteca";
+        delBtn.textContent = "🗑";
+        delBtn.onclick = () => deleteTrack(track.id);
+
+        actions.appendChild(prevBtn);
+        actions.appendChild(delBtn);
+        li.appendChild(details);
+        li.appendChild(actions);
+        libraryList.appendChild(li);
+      });
+    }
+
+    function togglePreview(track) {
+      if (currentPreviewId === track.id && !previewAudio.paused) {
+        previewAudio.pause();
+        currentPreviewId = null;
+        renderLibrary();
+        return;
+      }
+
+      currentPreviewId = track.id;
+      const url = URL.createObjectURL(track.blob);
+      previewAudio.src = url;
+      previewAudio.play().catch(() => {});
+      renderLibrary();
+
+      previewAudio.onended = () => {
+        currentPreviewId = null;
+        renderLibrary();
+      };
+    }
+
+    async function deleteTrack(id) {
+      if (currentPreviewId === id) {
+        previewAudio.pause();
+        previewAudio.src = "";
+        currentPreviewId = null;
+      }
+      await dbDeleteTrack(id);
+      library = library.filter(t => t.id !== id);
+      renderLibrary();
+    }
+
+    async function handleIncomingFiles(files) {
+      if (!files || files.length === 0) return;
+      showStatus("Almacenando en IndexedDB...");
+
+      let added = 0;
+      for (const file of files) {
+        if (!file.type.startsWith("audio/") && !file.name.match(/\.(mp3|wav|ogg|flac|aac|m4a)$/i)) continue;
+        const record = await dbSaveTrack(file);
+        library.push(record);
+        added++;
+      }
+
+      showStatus(`¡Se guardaron ${added} canciones con éxito!`, true);
+      renderLibrary();
+    }
+
+    // CARGA INICIAL
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        library = await dbGetAllTracks();
+        renderLibrary();
+      } catch (e) {
+        console.error("Error al cargar biblioteca:", e);
+      }
+    });
+
+    // DRAG & DROP
+    dropzone.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => {
+      handleIncomingFiles(e.target.files);
+      fileInput.value = "";
+    });
+
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("active");
+    });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("active"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("active");
+      if (e.dataTransfer.files) handleIncomingFiles(e.dataTransfer.files);
+    });
+
+    // VACIAR TODO
+    clearAllBtn.addEventListener("click", async () => {
+      if (library.length === 0) return;
+      if (confirm("¿Estás seguro de que deseas eliminar todas las pistas guardadas?")) {
+        previewAudio.pause();
+        previewAudio.src = "";
+        currentPreviewId = null;
+        await dbClearAll();
+        library = [];
+        renderLibrary();
+      }
+    });
+  </script>
+</body>
+</html>
